@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minecraft Náborový Portál</title>
+  <style>
+    :root {
+      --bg-dark: #121212;
+      --card-bg: #1e1e1e;
+      --accent: #2ecc71;
+      --accent-hover: #27ae60;
+      --danger: #e74c3c;
+      --danger-hover: #c0392b;
+      --text: #ffffff;
+      --text-muted: #aaa;
+      --border: #333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text); padding: 20px; line-height: 1.5; }
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    /* Navigace */
+    .navbar { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 15px 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+    .brand { font-size: 1.2rem; font-weight: bold; color: var(--accent); }
+    .user-info { display: flex; align-items: center; gap: 15px; font-size: 0.95rem; }
+
+    /* Karty a Panely */
+    .card { background: var(--card-bg); padding: 25px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+    h2 { margin-bottom: 20px; font-size: 1.4rem; color: #fff; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    
+    /* Formuláře */
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 0.9rem; color: var(--text-muted); }
+    input, textarea, select { width: 100%; padding: 12px; border-radius: 6px; border: 1px solid var(--border); background: #2a2a2a; color: #fff; font-size: 0.95rem; }
+    input:focus, textarea:focus, select:focus { outline: 1px solid var(--accent); }
+    
+    /* Tlačítka */
+    .btn { background: var(--accent); color: #fff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; transition: background 0.2s; display: inline-block; }
+    .btn:hover { background: var(--accent-hover); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+
+    /* Statistiky Admin Panel */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
+    .stat-card { background: #252525; padding: 15px; border-radius: 6px; border: 1px solid var(--border); text-align: center; }
+    .stat-card .number { font-size: 1.8rem; font-weight: bold; color: var(--accent); }
+    .stat-card .label { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Filtry */
+    .filter-bar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-bar input, .filter-bar select { flex: 1; min-width: 150px; }
+
+    /* Seznam přihlášek */
+    .app-card { background: #252525; padding: 20px; border-radius: 6px; border-left: 5px solid var(--accent); margin-bottom: 15px; }
+    .app-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+    .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: bold; }
+    .badge-Ceka { background: #f39c12; color: #000; }
+    .badge-Prijato { background: #2ecc71; color: #000; }
+    .badge-Zamitnuto { background: #e74c3c; color: #fff; }
+    
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  
+  <!-- Horní lišta -->
+  <div class="navbar">
+    <div class="brand">🎮 MC Náborový Systém</div>
+    <div id="userInfo" class="user-info"></div>
+  </div>
+
+  <!-- Přihlašování a Registrace -->
+  <div id="authSection" class="card">
+    <div id="loginForm">
+      <h2>Přihlášení</h2>
+      <div class="form-group">
+        <label>Minecraft Nick</label>
+        <input type="text" id="loginNick" placeholder="Zadejte Váš nick ze hry">
+      </div>
+      <div class="form-group">
+        <label>Heslo</label>
+        <input type="password" id="loginPass" placeholder="Zadejte heslo">
+      </div>
+      <button class="btn" onclick="login()">Přihlásit se</button>
+      <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted);">
+        Nemáte ještě účet? <a href="#" onclick="switchAuth(true)" style="color: var(--accent);">Registrovat se</a>
+      </p>
+    </div>
+
+    <div id="registerForm" class="hidden">
+      <h2>Registrace Účtu</h2>
+      <div class="form-group">
+        <label>Minecraft Nick</label>
+        <input type="text" id="regNick" placeholder="Přesný Nick ve hře">
+      </div>
+      <div class="form-group">
+        <label>E-mailová Adresa</label>
+        <input type="email" id="regEmail" placeholder="vás@email.cz">
+      </div>
+      <div class="form-group">
+        <label>Heslo</label>
+        <input type="password" id="regPass" placeholder="Zvolte heslo">
+      </div>
+      <button class="btn" onclick="register()">Vytvořit účet</button>
+      <p style="margin-top: 15px; font-size: 0.9rem; color: var(--text-muted);">
+        Již máte účet? <a href="#" onclick="switchAuth(false)" style="color: var(--accent);">Přihlásit se</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- Panel pro Uživatelé -->
+  <div id="userPanel" class="card hidden">
+    <h2>Podat přihlášku do A-Týmu</h2>
+    <form onsubmit="submitApp(event)">
+      <div class="form-group">
+        <label>Pozice, o kterou máte zájem</label>
+        <select id="appRole" required>
+          <option value="Helper">Helper</option>
+          <option value="Builder">Builder</option>
+          <option value="Developer">Developer</option>
+          <option value="Eventer">Eventer</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Věk</label>
+        <input type="number" id="appAge" min="12" max="99" required>
+      </div>
+      <div class="form-group">
+        <label>Proč bychom měli vybrat právě vás? (Zkušenosti, schopnosti...)</label>
+        <textarea id="appReason" rows="5" required></textarea>
+      </div>
+      <button type="submit" class="btn">Odeslat Přihlášku</button>
+    </form>
+
+    <h2 style="margin-top: 30px;">Moje Odeslané Přihlášky</h2>
+    <div id="userAppsList"></div>
+  </div>
+
+  <!-- Administrátorský Panel -->
+  <div id="adminPanel" class="card hidden">
+    <h2>Administrace Náborů</h2>
+
+    <!-- Přehledové Statistiky -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="number" id="statTotal">0</div>
+        <div class="label">Celkem přihlášek</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="statPending" style="color: #f39c12;">0</div>
+        <div class="label">Čeká na vyřízení</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="statApproved" style="color: #2ecc71;">0</div>
+        <div class="label">Schváleno</div>
+      </div>
+      <div class="stat-card">
+        <div class="number" id="statRejected" style="color: #e74c3c;">0</div>
+        <div class="label">Zamítnuto</div>
+      </div>
+    </div>
+
+    <!-- Vyhledávání a Filtry -->
+    <div class="filter-bar">
+      <input type="text" id="searchFilter" placeholder="Hledat podle Nicku..." oninput="renderAdminApps()">
+      <select id="statusFilter" onchange="renderAdminApps()">
+        <option value="ALL">Všechny stavy</option>
+        <option value="Čeká">Čekající</option>
+        <option value="Přijato">Přijaté</option>
+        <option value="Zamítnuto">Zamítnuté</option>
+      </select>
+    </div>
+
+    <div id="adminAppsList"></div>
+  </div>
+
+</div>
+
+<script>
+  // Inicializace výchozích dat
+  if (!localStorage.getItem('users')) {
+    const initialUsers = [{ nick: 'Admin', email: 'admin@mcserver.cz', pass: 'admin123', isAdmin: true }];
+    localStorage.setItem('users', JSON.stringify(initialUsers));
+  }
+  if (!localStorage.getItem('applications')) {
+    localStorage.setItem('applications', JSON.stringify([]));
+  }
+
+  let currentUser = JSON.parse(sessionStorage.getItem('currentUser')) || null;
+
+  function updateInterface() {
+    const authSection = document.getElementById('authSection');
+    const userPanel = document.getElementById('userPanel');
+    const adminPanel = document.getElementById('adminPanel');
+    const userInfo = document.getElementById('userInfo');
+
+    if (currentUser) {
+      authSection.classList.add('hidden');
+      userPanel.classList.remove('hidden');
+      
+      userInfo.innerHTML = `
+        <span>Hráč: <b>${currentUser.nick}</b> ${currentUser.isAdmin ? '<span class="badge badge-Prijato">ADMIN</span>' : ''}</span>
+        <button class="btn btn-danger btn-sm" onclick="logout()">Odhlásit</button>
+      `;
+
+      if (currentUser.isAdmin) {
+        adminPanel.classList.remove('hidden');
+        renderAdminApps();
+      } else {
+        adminPanel.classList.add('hidden');
+      }
+
+      renderUserApps();
+    } else {
+      authSection.classList.remove('hidden');
+      userPanel.classList.add('hidden');
+      adminPanel.classList.add('hidden');
+      userInfo.innerHTML = '';
+    }
+  }
+
+  function switchAuth(showReg) {
+    document.getElementById('loginForm').classList.toggle('hidden', showReg);
+    document.getElementById('registerForm').classList.toggle('hidden', !showReg);
+  }
+
+  function register() {
+    const nick = document.getElementById('regNick').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const pass = document.getElementById('regPass').value;
+
+    if (!nick || !email || !pass) return alert('Vyplňte všechna pole!');
+
+    const users = JSON.parse(localStorage.getItem('users'));
+    if (users.some(u => u.nick.toLowerCase() === nick.toLowerCase())) {
+      return alert('Tento Minecraft nick je již zaregistrovaný!');
+    }
+
+    users.push({ nick, email, pass, isAdmin: false });
+    localStorage.setItem('users', JSON.stringify(users));
+
+    alert('Registrace byla úspěšná. Nyní se můžete přihlásit.');
+    switchAuth(false);
+  }
+
+  function login() {
+    const nick = document.getElementById('loginNick').value.trim();
+    const pass = document.getElementById('loginPass').value;
+
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users.find(u => u.nick.toLowerCase() === nick.toLowerCase() && u.pass === pass);
+
+    if (user) {
+      currentUser = user;
+      sessionStorage.setItem('currentUser', JSON.stringify(currentUser));
+      updateInterface();
+    } else {
+      alert('Nesprávné přihlašovací údaje!');
+    }
+  }
+
+  function logout() {
+    currentUser = null;
+    sessionStorage.removeItem('currentUser');
+    updateInterface();
+  }
+
+  function submitApp(e) {
+    e.preventDefault();
+    const role = document.getElementById('appRole').value;
+    const age = document.getElementById('appAge').value;
+    const reason = document.getElementById('appReason').value.trim();
+
+    const apps = JSON.parse(localStorage.getItem('applications'));
+    
+    apps.push({
+      id: Date.now(),
+      nick: currentUser.nick,
+      email: currentUser.email,
+      role,
+      age,
+      reason,
+      status: 'Čeká',
+      date: new Date().toLocaleDateString('cs-CZ')
+    });
+
+    localStorage.setItem('applications', JSON.stringify(apps));
+    alert('Přihláška byla úspěšně odeslána!');
+    e.target.reset();
+    updateInterface();
+  }
+
+  function renderUserApps() {
+    const apps = JSON.parse(localStorage.getItem('applications'));
+    const myApps = apps.filter(a => a.nick.toLowerCase() === currentUser.nick.toLowerCase());
+    const container = document.getElementById('userAppsList');
+
+    if (myApps.length === 0) {
+      container.innerHTML = '<p style="color: var(--text-muted);">Zatím jste neodeslali žádnou přihlášku.</p>';
+      return;
+    }
+
+    container.innerHTML = myApps.map(a => `
+      <div class="app-card">
+        <div class="app-header">
+          <strong>Pozice: ${a.role}</strong>
+          <span class="badge badge-${a.status}">${a.status}</span>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">Odesláno: ${a.date}</p>
+      </div>
+    `).join('');
+  }
+
+  function renderAdminApps() {
+    const apps = JSON.parse(localStorage.getItem('applications'));
+    const search = document.getElementById('searchFilter').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+
+    // Aktualizace statistik
+    document.getElementById('statTotal').innerText = apps.length;
+    document.getElementById('statPending').innerText = apps.filter(a => a.status === 'Čeká').length;
+    document.getElementById('statApproved').innerText = apps.filter(a => a.status === 'Přijato').length;
+    document.getElementById('statRejected').innerText = apps.filter(a => a.status === 'Zamítnuto').length;
+
+    // Filtrování
+    const filtered = apps.filter(a => {
+      const matchSearch = a.nick.toLowerCase().includes(search);
+      const matchStatus = statusFilter === 'ALL' || a.status === statusFilter;
+      return matchSearch && matchStatus;
+    });
+
+    const container = document.getElementById('adminAppsList');
+
+    if (filtered.length === 0) {
+      container.innerHTML = '<p style="color: var(--text-muted); margin-top: 10px;">Žádné přihlášky neodpovídají vývěru.</p>';
+      return;
+    }
+
+    container.innerHTML = filtered.map(a => `
+      <div class="app-card">
+        <div class="app-header">
+          <div>
+            <strong style="font-size: 1.1rem;">${a.nick}</strong> (${a.email})
+            <span style="color: var(--text-muted); font-size: 0.9rem;"> • Pozice: <b>${a.role}</b> | Věk: <b>${a.age}</b></span>
+          </div>
+          <span class="badge badge-${a.status}">${a.status}</span>
+        </div>
+        <p style="margin: 10px 0; background: #1a1a1a; padding: 10px; border-radius: 4px; white-space: pre-wrap;">${a.reason}</p>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px;">
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Datum: ${a.date}</span>
+          <div style="display: flex; gap: 8px;">
+            <button class="btn btn-sm" onclick="setStatus(${a.id}, 'Přijato')">Přijmout</button>
+            <button class="btn btn-danger btn-sm" onclick="setStatus(${a.id}, 'Zamítnuto')">Zamítnout</button>
+            <button class="btn btn-danger btn-sm" style="background: #555;" onclick="deleteApp(${a.id})">Smazat</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function setStatus(id, status) {
+    let apps = JSON.parse(localStorage.getItem('applications'));
+    apps = apps.map(a => a.id === id ? { ...a, status } : a);
+    localStorage.setItem('applications', JSON.stringify(apps));
+    renderAdminApps();
+  }
+
+  function deleteApp(id) {
+    if (!confirm('Opravdu chcete tuto přihlášku smazat?')) return;
+    let apps = JSON.parse(localStorage.getItem('applications'));
+    apps = apps.filter(a => a.id !== id);
+    localStorage.setItem('applications', JSON.stringify(apps));
+    renderAdminApps();
+  }
+
+  // Spuštění aplikace
+  updateInterface();
+</script>
+
+</body>
+</html>
